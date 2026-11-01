@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Movement Chiller</title>
+<meta name="theme-color" content="#0B1A33">
+<meta name="description" content="Dashboard live pergerakan stok dan baki terkini chiller DXN DC Sendayan">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chiller DC Sendayan">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B1A33; --bg2:#0F2244; --panel:#132A50; --panel2:#18345F; --line:#24497D;
+  --ink:#EEF3FB; --ink2:#B5C5DE; --ink3:#7F95B8;
+  --teal:#2BC4B4; --teal-d:#0E7C7B; --ice:#D6E1F1; --coral:#F2766B; --amber:#E9B44C; --red:#FF5A5F;
+  --masuk:#2BC4B4; --keluar:#F2766B; --baki:#9CC3FF;
+  --r:16px; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background:radial-gradient(1200px 600px at 85% -10%,#1B3D73 0%,transparent 60%),radial-gradient(900px 500px at -10% 10%,#0F3A4A 0%,transparent 55%),var(--bg);background-attachment:fixed}
+.wrap{max-width:1180px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+/* Header */
+header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.logo{width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.logo b{font:800 15px/1 'IBM Plex Sans';letter-spacing:.5px;background:linear-gradient(90deg,#D7262E 0 33%,#1B9E4B 33% 66%,#1F4FA3 66%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ttl h1{font-size:18px;font-weight:700;letter-spacing:.2px}
+.ttl p{font-size:12px;color:var(--ink3);margin-top:2px}
+.live{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);background:rgba(255,255,255,.05);border:1px solid var(--line);padding:7px 11px;border-radius:999px;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 0 rgba(43,196,180,.6);animation:pulse 2s infinite}
+.live.err .dot{background:var(--red);animation:none}
+.live.load .dot{background:var(--amber)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(43,196,180,.55)}70%{box-shadow:0 0 0 9px rgba(43,196,180,0)}100%{box-shadow:0 0 0 0 rgba(43,196,180,0)}}
+.btn{background:transparent;border:1px solid var(--line);color:var(--ink2);border-radius:10px;padding:7px 10px;font:500 12px 'IBM Plex Sans';cursor:pointer}
+.btn:hover{border-color:var(--teal);color:var(--ink)}
+
+/* Panels */
+.panel{background:linear-gradient(180deg,rgba(24,52,95,.92),rgba(19,42,80,.92));border:1px solid var(--line);border-radius:var(--r);padding:18px;animation:up .5s ease both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.h2{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.h2 .sp{flex:1}
+.grid{display:grid;gap:14px}
+.row2{grid-template-columns:1.25fr 1fr}
+@media(max-width:860px){.row2{grid-template-columns:1fr}}
+
+/* Hero */
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:center;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(43,196,180,.18),transparent 70%)}
+@media(max-width:760px){.hero{grid-template-columns:1fr}}
+.hero .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:600}
+.hero .big{font-size:clamp(44px,9vw,72px);font-weight:600;line-height:1.02;margin:6px 0 4px}
+.hero .big small{font-size:.32em;color:var(--ink2);margin-left:6px;font-weight:500}
+.hero .sub{font-size:13px;color:var(--ink2)}
+.hero.neg .big{color:var(--red);animation:blink 1.2s steps(2,start) infinite}
+@keyframes blink{50%{opacity:.35}}
+.formula{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;position:relative}
+.formula div{background:rgba(11,26,51,.55);border:1px solid var(--line);border-radius:12px;padding:10px 10px 9px}
+.formula span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.formula b{display:block;font-size:17px;margin-top:4px}
+.formula .op{font-size:10.5px;color:var(--ink3)}
+.c-in{color:var(--masuk)}.c-out{color:var(--keluar)}.c-bk{color:var(--baki)}
+@media(max-width:420px){.formula{grid-template-columns:repeat(2,1fr)}}
+
+/* Lokasi */
+.lok{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.lc{background:rgba(11,26,51,.5);border:1px solid var(--line);border-radius:14px;padding:14px;position:relative}
+.lc h3{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink2)}
+.lc .v{font-size:26px;font-weight:600;margin:6px 0 8px}
+.lc .v small{font-size:12px;color:var(--ink3);margin-left:3px}
+.lc .mm{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink3)}
+.lc .bar{height:5px;border-radius:5px;background:rgba(255,255,255,.07);margin-top:10px;overflow:hidden}
+.lc .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal-d),var(--teal));border-radius:5px}
+.lc.neg{border-color:var(--red)}
+.lc.neg .v{color:var(--red);animation:blink 1.2s steps(2,start) infinite}
+.lc .tag{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--red);background:rgba(255,90,95,.12);padding:3px 6px;border-radius:6px}
+
+/* KPI kecil */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kp{background:rgba(11,26,51,.5);border:1px solid var(--line);border-radius:12px;padding:12px}
+.kp span{font-size:11px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}
+.kp b{display:block;font-size:22px;margin-top:5px}
+.kp em{display:block;font-style:normal;font-size:11px;color:var(--ink3);margin-top:2px}
+@media(max-width:520px){
+  .lok{grid-template-columns:1fr 1fr;gap:9px}.lc{padding:12px}.lc .v{font-size:21px}
+  .kpis{gap:7px}.kp{padding:10px}.kp b{font-size:16px}.kp span{font-size:10px}
+  .ttl h1{font-size:16px}.live{padding:6px 9px;font-size:11px}
+  .jr{grid-template-columns:112px 1fr 70px}
+}
+input[type=date],select,input[type=search]{background:rgba(11,26,51,.7);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:6px 9px;font:500 12px 'IBM Plex Sans';color-scheme:dark}
+
+/* Pecahan jenis */
+.jn{display:grid;gap:9px}
+.jr{display:grid;grid-template-columns:132px 1fr 84px;gap:10px;align-items:center;font-size:12.5px}
+.jr .t{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jr .tr{height:9px;background:rgba(255,255,255,.06);border-radius:9px;overflow:hidden}
+.jr .tr i{display:block;height:100%;border-radius:9px}
+.jr .n{text-align:right}
+.sep{height:1px;background:var(--line);margin:12px 0}
+
+/* Carta */
+.chart{width:100%;height:260px}
+.legend{display:flex;gap:14px;font-size:11.5px;color:var(--ink2);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tip{position:fixed;pointer-events:none;background:#071226;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.5;display:none;z-index:9;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+
+/* Log */
+.fl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.fl input[type=search]{flex:1;min-width:140px}
+.log{display:grid;gap:0}
+.it{display:grid;grid-template-columns:78px 1fr auto;gap:12px;align-items:center;padding:11px 4px;border-bottom:1px solid rgba(36,73,125,.6)}
+.it:last-child{border-bottom:0}
+.it .d{font-size:12px;color:var(--ink3);line-height:1.3}
+.it .d b{display:block;color:var(--ink2);font-size:13px}
+.it .m b{font-size:13.5px;font-weight:600}
+.it .m p{font-size:11.5px;color:var(--ink3);margin-top:2px}
+.it .k{font-size:15px;font-weight:600;text-align:right}
+.pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:5px;margin-right:6px;vertical-align:1px}
+.p-in{background:rgba(43,196,180,.14);color:var(--masuk)}
+.p-out{background:rgba(242,118,107,.14);color:var(--keluar)}
+.new{background:var(--amber);color:#1b1300}
+.it.flash{animation:fl 2.4s ease}
+@keyframes fl{0%{background:rgba(233,180,76,.25)}100%{background:transparent}}
+.more{display:block;margin:12px auto 0}
+
+/* Integriti */
+.src{display:grid;gap:8px;font-size:12.5px}
+.sr{display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 11px;background:rgba(11,26,51,.45);border:1px solid var(--line);border-radius:10px}
+.sr p{font-size:11px;color:var(--ink3);margin-top:2px}
+.ok{color:var(--teal);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.alert{border:1px solid rgba(233,180,76,.5);background:rgba(233,180,76,.08);border-radius:12px;padding:11px 13px;font-size:12.5px;color:var(--ink2);line-height:1.55}
+.alert b{color:var(--amber)}
+.banner{display:none;margin-bottom:14px;border:1px solid rgba(255,90,95,.5);background:rgba(255,90,95,.1);border-radius:12px;padding:10px 13px;font-size:12.5px}
+footer{margin-top:22px;font-size:11.5px;color:var(--ink3);line-height:1.6;text-align:center}
+.empty{color:var(--ink3);font-size:13px;padding:18px 0;text-align:center}
+.skel{opacity:.4}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><b>DXN</b></div>
+    <div class="ttl"><h1>Data Movement Chiller</h1><p>DC Sendayan · Paparan sahaja</p></div>
+    <div class="live load" id="live"><span class="dot"></span><span id="liveTx">Memuatkan…</span></div>
+  </header>
+
+  <div class="banner" id="banner"></div>
+
+  <section class="panel hero" id="hero">
+    <div>
+      <div class="lbl">Baki terkini dalam chiller</div>
+      <div class="big num" id="bakiBesar">—<small>kg</small></div>
+      <div class="sub" id="bakiSub">Sedang membaca data portal…</div>
+    </div>
+    <div class="formula">
+      <div><span>Baki awal</span><b class="num" id="fAwal">—</b><em class="op" id="fAwalT"></em></div>
+      <div><span>+ Masuk</span><b class="num c-in" id="fMasuk">—</b><em class="op">bersih selepas reject</em></div>
+      <div><span>− Keluar</span><b class="num c-out" id="fKeluar">—</b><em class="op">semua jenis</em></div>
+      <div><span>= Baki</span><b class="num c-bk" id="fBaki">—</b><em class="op">kg</em></div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:14px">
+    <div class="h2">Baki mengikut lokasi stok</div>
+    <div class="lok" id="lok"></div>
+  </section>
+
+  <div class="grid row2" style="margin-top:14px">
+    <section class="panel">
+      <div class="h2">Pergerakan harian <span class="sp"></span><input type="date" id="pilihHari"></div>
+      <div class="kpis">
+        <div class="kp"><span>Masuk</span><b class="num c-in" id="hMasuk">—</b><em id="hMasukE"></em></div>
+        <div class="kp"><span>Keluar</span><b class="num c-out" id="hKeluar">—</b><em id="hKeluarE"></em></div>
+        <div class="kp"><span>Baki akhir hari</span><b class="num c-bk" id="hBaki">—</b><em id="hBakiE"></em></div>
+      </div>
+      <div class="sep"></div>
+      <div class="h2" style="margin-bottom:8px">Trend 31 hari
+        <span class="sp"></span>
+        <div class="legend"><span><i style="background:var(--masuk)"></i>Masuk</span><span><i style="background:var(--keluar)"></i>Keluar</span><span><i style="background:var(--baki);height:3px"></i>Baki</span></div>
+      </div>
+      <svg class="chart" id="chart" role="img" aria-label="Carta pergerakan harian chiller"></svg>
+    </section>
+
+    <section class="panel">
+      <div class="h2">Pecahan bulan <span class="sp"></span><select id="pilihBulan"></select></div>
+      <div class="jn" id="jnMasuk"></div>
+      <div class="sep"></div>
+      <div class="jn" id="jnKeluar"></div>
+      <div class="sep"></div>
+      <div class="jn" id="jnReject"></div>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:14px">
+    <div class="h2">Log pergerakan <span class="sp"></span><button class="btn" id="csvBtn">Muat turun CSV</button></div>
+    <div class="fl">
+      <select id="fArah"><option value="">Semua arah</option><option>MASUK</option><option>KELUAR</option></select>
+      <select id="fJenis"><option value="">Semua jenis</option></select>
+      <select id="fLok"><option value="">Semua lokasi</option></select>
+      <input type="search" id="fCari" placeholder="Cari tarikh, shedhouse, catatan…">
+    </div>
+    <div class="log" id="log"></div>
+    <button class="btn more" id="moreBtn" style="display:none">Papar lagi</button>
+  </section>
+
+  <div class="grid row2" style="margin-top:14px">
+    <section class="panel">
+      <div class="h2">Status sumber data</div>
+      <div class="src" id="src"></div>
+    </section>
+    <section class="panel">
+      <div class="h2">Semakan integriti</div>
+      <div id="integ"></div>
+    </section>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script src="config.js"></script>
+<script src="enjin.js"></script>
+<script>
+(function(){
+'use strict';
+const C = window.KONFIG, E = window.ENJIN;
+const $ = id => document.getElementById(id);
+const fmt = (v,d=1) => (v==null||isNaN(v)) ? '—' : Number(v).toLocaleString('en-MY',{minimumFractionDigits:d,maximumFractionDigits:d});
+const BLN = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'];
+const tTeks = t => { const [y,m,d]=t.split('-'); return +d+' '+BLN[+m-1]+' '+y; };
+const tPendek = t => { const [,m,d]=t.split('-'); return +d+' '+BLN[+m-1]; };
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hariIni = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const store = { get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }, set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} } };
+const kunciRek = r => [r.kod,r.t,r.jenis,r.lokasi,r.kg,r.baris].join('|');
+const WARNA_JENIS = {'Harvest Sendayan':'#2BC4B4','Terima Farm Luar':'#5DD6F0','Stok Keluar':'#F2766B','RND / Sampel / Gift':'#E9B44C','Proses Kering':'#C49BFF','Sisa / Waste':'#FF5A5F'};
+
+let D = null, hasilMuat = [], lihat = 40, kenal = null, baru = new Set(), cacheTab = store.get('chiller.tab',{});
+
+async function fetcher(url){
+  const r = await fetch(url,{cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.text();
+}
+
+function setLive(state, teks){ const l=$('live'); l.className='live '+state; $('liveTx').textContent=teks; }
+
+async function muat(){
+  setLive(D?'':'load', D?'Menyegar…':'Memuatkan…');
+  try{
+    const {hasil, rekod} = await E.muatSemua(C, fetcher, cacheTab);
+    store.set('chiller.tab', cacheTab);
+    hasilMuat = hasil;
+    const gagal = hasil.filter(h=>h.ralat);
+    if(gagal.length === hasil.length) throw new Error(gagal[0].ralat);
+    // rekod baharu sejak muat semula sebelumnya
+    const kunci = new Set(rekod.map(kunciRek));
+    if(kenal) { baru = new Set([...kunci].filter(k=>!kenal.has(k))); }
+    kenal = kunci;
+    store.set('chiller.cache',{masa:Date.now(), rekod, hasil:hasil.map(h=>({kod:h.kod,ym:h.ym,tab:h.tab,n:h.rekod.length,ralat:h.ralat||null}))});
+    D = E.kira(C, rekod, hariIni());
+    lukis();
+    $('banner').style.display = gagal.length ? 'block':'none';
+    if(gagal.length) $('banner').innerHTML = '<b>Sebahagian data tidak dapat dibaca:</b> '+gagal.map(g=>esc(C.FAIL[g.kod].nama+' ('+g.ym+')')).join(', ')+'. Paparan menggunakan data yang berjaya dibaca.';
+    setLive('', 'Live · '+new Date().toLocaleTimeString('en-GB'));
+  }catch(e){
+    const c = store.get('chiller.cache',null);
+    if(!D && c){ hasilMuat=c.hasil; D=E.kira(C,c.rekod,hariIni()); lukis(); }
+    $('banner').style.display='block';
+    $('banner').innerHTML = '<b>Tiada sambungan ke data live.</b> '+(c?'Memaparkan data terakhir pada '+new Date(c.masa).toLocaleString('en-GB')+'. ':'')+'Akan cuba semula secara automatik.';
+    setLive('err','Luar talian');
+  }
+}
+
+function lukis(){
+  const J = D.jumlah;
+  // Hero
+  $('hero').classList.toggle('neg', J.baki < 0);
+  $('bakiBesar').innerHTML = fmt(J.baki)+'<small>kg</small>';
+  const akhir = D.rekod.length ? D.rekod[D.rekod.length-1].t : null;
+  $('bakiSub').textContent = 'Dikira dari '+tTeks(C.TARIKH_MULA)+(akhir?' hingga pergerakan terakhir '+tTeks(akhir):'')+' · '+D.rekod.length+' rekod';
+  $('fAwal').textContent = fmt(J.awal); $('fAwalT').textContent = tPendek(C.TARIKH_MULA);
+  $('fMasuk').textContent = fmt(J.masuk); $('fKeluar').textContent = fmt(J.keluar); $('fBaki').textContent = fmt(J.baki);
+
+  // Lokasi
+  const maxB = Math.max(1, ...D.perLokasi.map(p=>Math.abs(p.baki)));
+  $('lok').innerHTML = D.perLokasi.filter(p=>p.awal||p.masuk||p.keluar||E.LOKASI_TETAP.slice(0,4).includes(p.lokasi)).map(p=>`
+    <div class="lc ${p.baki<0?'neg':''}">${p.baki<0?'<span class="tag">SEMAK</span>':''}
+      <h3>${esc(p.lokasi)}</h3>
+      <div class="v num">${fmt(p.baki)}<small>kg</small></div>
+      <div class="mm"><span class="c-in num">+${fmt(p.masuk)}</span><span class="c-out num">−${fmt(p.keluar)}</span></div>
+      <div class="bar"><i style="width:${Math.max(0,p.baki)/maxB*100}%"></i></div>
+    </div>`).join('');
+
+  // Bulan
+  const bulan = [...new Set(D.siri.map(s=>s.t.slice(0,7)))].reverse();
+  const pb = $('pilihBulan'), nilaiB = pb.value || bulan.find(b=>D.rekod.some(r=>r.t.startsWith(b))) || bulan[0];
+  pb.innerHTML = bulan.map(b=>`<option value="${b}">${BLN[+b.slice(5)-1]} ${b.slice(0,4)}</option>`).join('');
+  pb.value = nilaiB; lukisBulan();
+
+  // Hari
+  const ph = $('pilihHari'); ph.min = C.TARIKH_MULA; ph.max = hariIni();
+  if(!ph.value) ph.value = hariIni();
+  lukisHari(); lukisCarta(); isiPenapis(); lukisLog(); lukisSumber();
+  $('foot').innerHTML = 'Sumber: '+Object.values(C.FAIL).map(f=>esc(f.nama)).join(' · ')+'<br>Formula: Baki = Baki Awal + Masuk (bersih selepas reject) − Keluar (Stok Keluar + RND/Sampel/Gift + Proses Kering + Sisa/Waste)<br>Data diisi oleh staf melalui portal Data Center DC Sendayan · Dimuat semula setiap '+C.SEGAR_SAAT+' saat';
+}
+
+function lukisHari(){
+  const t = $('pilihHari').value || hariIni();
+  const s = D.siri.find(x=>x.t===t);
+  const rek = D.rekod.filter(r=>r.t===t);
+  const m = rek.filter(r=>r.arah==='MASUK'), k = rek.filter(r=>r.arah==='KELUAR');
+  $('hMasuk').textContent = fmt(s?s.masuk:0)+' kg'; $('hMasukE').textContent = m.length+' rekod';
+  $('hKeluar').textContent = fmt(s?s.keluar:0)+' kg'; $('hKeluarE').textContent = k.length+' rekod';
+  $('hBaki').textContent = s ? fmt(s.baki)+' kg' : '—'; $('hBakiE').textContent = tTeks(t);
+}
+
+function barisJenis(label, v, maks, warna){
+  return `<div class="jr"><span class="t">${esc(label)}</span><span class="tr"><i style="width:${maks?v/maks*100:0}%;background:${warna}"></i></span><span class="n num">${fmt(v)} kg</span></div>`;
+}
+function lukisBulan(){
+  const b = $('pilihBulan').value;
+  const rek = D.rekod.filter(r=>r.t.startsWith(b));
+  const agg = {}; let rej = {h:0,t:0};
+  rek.forEach(r=>{ agg[r.jenis]=(agg[r.jenis]||0)+r.kg; if(r.reject){ if(r.jenis===E.JENIS.HARVEST) rej.h+=r.reject; else rej.t+=r.reject; } });
+  const masuk=[E.JENIS.HARVEST,E.JENIS.TERIMA], keluar=[E.JENIS.JUALAN,E.JENIS.RND,E.JENIS.KERING,E.JENIS.SISA];
+  const tm = masuk.reduce((a,j)=>a+(agg[j]||0),0), tk = keluar.reduce((a,j)=>a+(agg[j]||0),0);
+  const maks = Math.max(1,...Object.values(agg));
+  $('jnMasuk').innerHTML = `<div class="h2" style="margin:0 0 2px">Masuk <span class="sp"></span><span class="num c-in">${fmt(tm)} kg</span></div>`+masuk.map(j=>barisJenis(j,agg[j]||0,maks,WARNA_JENIS[j])).join('');
+  $('jnKeluar').innerHTML = `<div class="h2" style="margin:0 0 2px">Keluar <span class="sp"></span><span class="num c-out">${fmt(tk)} kg</span></div>`+keluar.map(j=>barisJenis(j,agg[j]||0,maks,WARNA_JENIS[j])).join('');
+  const mr = Math.max(1,rej.h,rej.t);
+  $('jnReject').innerHTML = `<div class="h2" style="margin:0 0 2px">Reject semasa penerimaan <span class="sp"></span><span class="num warn">${fmt(rej.h+rej.t)} kg</span></div>`+
+    barisJenis('Harvest Sendayan',rej.h,mr,'#E9B44C')+barisJenis('Farm luar',rej.t,mr,'#E9B44C')+
+    `<p style="font-size:11px;color:var(--ink3);margin-top:2px">Reject tidak masuk chiller — sudah ditolak daripada angka Masuk.</p>`;
+}
+
+function lukisCarta(){
+  const svg = $('chart'); const W = svg.clientWidth || 600, H = 260;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const s = D.siri.slice(-31); if(!s.length){ svg.innerHTML=''; return; }
+  const pl=44, pr=46, pt=12, pb=26, iw=W-pl-pr, ih=H-pt-pb;
+  const mx = Math.max(1,...s.map(x=>Math.max(x.masuk,x.keluar)));
+  const bMin = Math.min(0,...s.map(x=>x.baki)), bMax = Math.max(1,...s.map(x=>x.baki));
+  const mid = pt+ih/2, sc = (ih/2-4)/mx;
+  const yb = v => pt+ih-(v-bMin)/((bMax-bMin)||1)*ih;
+  const bw = iw/s.length, w = Math.max(2,Math.min(14,bw*.62));
+  let g = '';
+  [0.5,1].forEach(f=>{ const v=mx*f; g+=`<line x1="${pl}" x2="${pl+iw}" y1="${mid-v*sc}" y2="${mid-v*sc}" stroke="#24497D" stroke-dasharray="2 4"/><line x1="${pl}" x2="${pl+iw}" y1="${mid+v*sc}" y2="${mid+v*sc}" stroke="#24497D" stroke-dasharray="2 4"/><text x="${pl-6}" y="${mid-v*sc+4}" fill="#7F95B8" font-size="10" text-anchor="end" font-family="IBM Plex Mono">${Math.round(v)}</text><text x="${pl-6}" y="${mid+v*sc+4}" fill="#7F95B8" font-size="10" text-anchor="end" font-family="IBM Plex Mono">-${Math.round(v)}</text>`; });
+  g+=`<line x1="${pl}" x2="${pl+iw}" y1="${mid}" y2="${mid}" stroke="#3A5F96"/>`;
+  [bMin,bMax].forEach(v=>{ g+=`<text x="${pl+iw+6}" y="${yb(v)+4}" fill="#9CC3FF" font-size="10" font-family="IBM Plex Mono">${Math.round(v)}</text>`; });
+  s.forEach((x,i)=>{ const cx=pl+bw*i+bw/2;
+    if(x.masuk) g+=`<rect x="${cx-w/2}" y="${mid-x.masuk*sc}" width="${w}" height="${x.masuk*sc}" rx="2" fill="#2BC4B4"/>`;
+    if(x.keluar) g+=`<rect x="${cx-w/2}" y="${mid}" width="${w}" height="${x.keluar*sc}" rx="2" fill="#F2766B"/>`;
+    if(i%Math.ceil(s.length/8)===0 || i===s.length-1) g+=`<text x="${cx}" y="${H-8}" fill="#7F95B8" font-size="10" text-anchor="middle">${tPendek(x.t)}</text>`;
+    g+=`<rect class="hit" data-i="${i}" x="${pl+bw*i}" y="${pt}" width="${bw}" height="${ih}" fill="transparent"/>`;
+  });
+  const d = s.map((x,i)=>(i?'L':'M')+(pl+bw*i+bw/2).toFixed(1)+' '+yb(x.baki).toFixed(1)).join(' ');
+  g+=`<path d="${d}" fill="none" stroke="#9CC3FF" stroke-width="2.2" stroke-linejoin="round"/>`;
+  const L=s[s.length-1]; g+=`<circle cx="${pl+bw*(s.length-1)+bw/2}" cy="${yb(L.baki)}" r="4" fill="#9CC3FF" stroke="#0B1A33" stroke-width="2"/>`;
+  svg.innerHTML = g;
+  const tip = $('tip');
+  svg.querySelectorAll('.hit').forEach(el=>{
+    const sh = e=>{ const x=s[+el.dataset.i]; tip.style.display='block';
+      tip.innerHTML=`<b>${tTeks(x.t)}</b><br><span class="c-in">Masuk ${fmt(x.masuk)} kg</span><br><span class="c-out">Keluar ${fmt(x.keluar)} kg</span><br><span class="c-bk">Baki ${fmt(x.baki)} kg</span>`;
+      const p=e.touches?e.touches[0]:e; tip.style.left=Math.min(innerWidth-170,p.clientX+12)+'px'; tip.style.top=(p.clientY+12)+'px'; };
+    el.addEventListener('mousemove',sh); el.addEventListener('touchstart',sh,{passive:true});
+    el.addEventListener('click',()=>{ $('pilihHari').value=s[+el.dataset.i].t; lukisHari(); });
+  });
+  svg.addEventListener('mouseleave',()=>tip.style.display='none');
+}
+
+function isiPenapis(){
+  const isi=(id,arr,lbl)=>{ const el=$(id), v=el.value; el.innerHTML=`<option value="">${lbl}</option>`+arr.map(x=>`<option>${esc(x)}</option>`).join(''); el.value=v; };
+  isi('fJenis',Object.values(E.JENIS),'Semua jenis');
+  isi('fLok',[...new Set(D.rekod.map(r=>r.lokasi))],'Semua lokasi');
+}
+function tapis(){
+  const a=$('fArah').value, j=$('fJenis').value, l=$('fLok').value, q=$('fCari').value.trim().toLowerCase();
+  return D.rekod.filter(r=>(!a||r.arah===a)&&(!j||r.jenis===j)&&(!l||r.lokasi===l)&&
+    (!q||(tTeks(r.t)+' '+r.t+' '+r.ket+' '+r.jenis+' '+r.lokasi).toLowerCase().includes(q))).slice().reverse();
+}
+function lukisLog(){
+  const L = tapis();
+  $('log').innerHTML = L.length ? L.slice(0,lihat).map(r=>{ const b=baru.has(kunciRek(r));
+    return `<div class="it ${b?'flash':''}"><div class="d"><b>${tPendek(r.t)}</b>${r.t.slice(0,4)}</div>
+      <div class="m"><b><span class="pill ${r.arah==='MASUK'?'p-in':'p-out'}">${r.arah}</span>${b?'<span class="pill new">BARU</span>':''}${esc(r.jenis)}</b><p>${esc(r.lokasi)}${r.ket?' · '+esc(r.ket):''}</p></div>
+      <div class="k num ${r.arah==='MASUK'?'c-in':'c-out'}">${r.arah==='MASUK'?'+':'−'}${fmt(r.kg)}</div></div>`; }).join('')
+    : '<div class="empty">Tiada rekod untuk tapisan ini.</div>';
+  $('moreBtn').style.display = L.length>lihat ? 'block':'none';
+}
+
+function lukisSumber(){
+  const kod = Object.keys(C.FAIL);
+  $('src').innerHTML = kod.map(k=>{
+    const h = hasilMuat.filter(x=>x.kod===k), n = h.reduce((a,x)=>a+(x.rekod?x.rekod.length:(x.n||0)),0);
+    const ral = h.filter(x=>x.ralat), r = D.rekod.filter(x=>x.kod===k), akhir = r.length?r[r.length-1].t:null;
+    const st = ral.length ? '<span class="bad">RALAT</span>' : n ? '<span class="ok">OK</span>' : '<span class="warn">TIADA DATA</span>';
+    return `<div class="sr"><div><b>${esc(C.FAIL[k].nama)}</b><p>${n} rekod · tab: ${esc(h.map(x=>x.tab).filter(Boolean).join(', ')||'—')}${akhir?' · terakhir '+tTeks(akhir):''}</p></div><div>${st}</div></div>`;
+  }).join('');
+  const isu = [];
+  D.perLokasi.filter(p=>p.baki<0).forEach(p=>isu.push(`<b>Baki negatif — ${esc(p.lokasi)} (${fmt(p.baki)} kg).</b> Keluar melebihi masuk. Semak baki awal, rekod masuk yang belum diisi, atau label lokasi pada Stok Keluar.`));
+  if(D.ganda.length) isu.push(`<b>${D.ganda.length} kemungkinan rekod berganda</b> (tarikh dan shedhouse/lokasi sama): `+D.ganda.slice(0,8).map(g=>esc(tTeks(g.t)+' '+g.ket))+(D.ganda.length>8?' …':'')+'. Kedua-dua rekod dikira; sahkan dan padam salah satu dalam fail asal jika berganda.');
+  const tiada = hasilMuat.filter(h=>!h.tab && !h.ralat && h.ym < hariIni().slice(0,7));
+  if(tiada.length) isu.push('<b>Tab bulan tidak dijumpai:</b> '+tiada.map(h=>esc(C.FAIL[h.kod].nama+' '+h.ym)).join(', ')+'.');
+  if(!Object.values(C.BAKI_AWAL).some(v=>+v)) isu.push('<b>Baki awal belum ditetapkan</b> (semua lokasi 0 kg pada '+tTeks(C.TARIKH_MULA)+'). Isi selepas kiraan stok fizikal dalam config.js.');
+  $('integ').innerHTML = isu.length ? isu.map(x=>`<div class="alert" style="margin-bottom:8px">${x}</div>`).join('') : '<div class="alert" style="border-color:rgba(43,196,180,.5);background:rgba(43,196,180,.08)"><b style="color:var(--teal)">Tiada isu dikesan.</b></div>';
+}
+
+function eksportCSV(){
+  const L = tapis().reverse();
+  const q = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const baris = [['Tarikh','Arah','Jenis','Lokasi','Kg','Reject (kg)','Catatan','Fail sumber','Tab','Baris']].concat(
+    L.map(r=>[r.t,r.arah,r.jenis,r.lokasi,r.kg,r.reject||'',r.ket,r.sumber,r.tab,r.baris]));
+  const blob = new Blob(['﻿'+baris.map(b=>b.map(q).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='pergerakan_chiller_'+hariIni()+'.csv'; a.click();
+}
+
+['fArah','fJenis','fLok'].forEach(id=>$(id).addEventListener('change',()=>{lihat=40;lukisLog();}));
+$('fCari').addEventListener('input',()=>{lihat=40;lukisLog();});
+$('moreBtn').addEventListener('click',()=>{lihat+=40;lukisLog();});
+$('pilihHari').addEventListener('change',lukisHari);
+$('pilihBulan').addEventListener('change',lukisBulan);
+$('csvBtn').addEventListener('click',eksportCSV);
+$('live').addEventListener('click',muat); $('live').style.cursor='pointer'; $('live').title='Tekan untuk segar semula';
+addEventListener('resize',()=>{ if(D) lukisCarta(); });
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) muat(); });
+setInterval(()=>{ if(!document.hidden) muat(); }, Math.max(20,C.SEGAR_SAAT)*1000);
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+muat();
+})();
+</script>
+</body>
+</html>
