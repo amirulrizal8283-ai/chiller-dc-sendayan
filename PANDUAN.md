@@ -13,11 +13,14 @@ Dashboard membaca terus 4 fail Google Sheet yang diisi oleh staf melalui portal 
 | KELUAR | Proses Kering | QC Stock Issue | Berat sebelum kering |
 | KELUAR | Sisa / Waste | QC Stock Issue | Total waste (kg) |
 
-**Formula:** Baki = Baki Awal + Masuk − Keluar
+**Formula (carry forward):**
+- Baki C/F = Baki B/F + Masuk − Keluar ± Pelarasan kiraan fizikal
+- Baki C/F akhir bulan = Baki B/F awal bulan berikutnya
+- Dikira hari demi hari sejak `TARIKH_MULA` (1 Ogos 2026, baki pembukaan = C/F Julai daripada fail Daily Data Movement EO 2026), jadi baki setiap bulan sentiasa bersambung.
 
 ## Pemasangan di GitHub Pages (±10 minit)
 1. Log masuk GitHub (akaun `amirulrizal8283-ai`), tekan **New repository**, namakan `chiller-dc-sendayan`, pilih **Public**, tekan **Create repository**.
-2. Tekan **uploading an existing file**, kemudian muat naik **kesemua 8 fail**: `index.html`, `config.js`, `enjin.js`, `sw.js`, `manifest.json`, `icon-192.png`, `icon-512.png`, `PANDUAN.md`. Tekan **Commit changes**.
+2. Tekan **uploading an existing file**, kemudian muat naik **kesemua 8 fail** (jika repo sudah wujud: tekan **Add file › Upload files**, muat naik semula `index.html`, `config.js`, `enjin.js`, `sw.js`, dan fail lama akan diganti): `index.html`, `config.js`, `enjin.js`, `sw.js`, `manifest.json`, `icon-192.png`, `icon-512.png`, `PANDUAN.md`. Tekan **Commit changes**.
 3. Tekan **Settings › Pages**. Di *Source*, pilih **Deploy from a branch**, branch **main**, folder **/(root)**, tekan **Save**.
 4. Selepas 1–2 minit, pautan akan dipaparkan: `https://amirulrizal8283-ai.github.io/chiller-dc-sendayan/`
 
@@ -27,7 +30,14 @@ Dashboard membaca terus 4 fail Google Sheet yang diisi oleh staf melalui portal 
 
 ## Tetapan (fail `config.js` sahaja)
 - `TARIKH_MULA` — tarikh mula pengiraan baki.
-- `BAKI_AWAL` — baki fizikal chiller (kg) bagi setiap lokasi pada tarikh mula. **Wajib diisi selepas kiraan stok fizikal**, jika tidak baki akan bermula dari 0.
+- `BAKI_AWAL` — baki chiller (kg) bagi setiap lokasi pada pagi TARIKH_MULA. Kini diisi dengan C/F Julai 2026 daripada fail Daily Data Movement EO 2026 (TKPM 208.7, Rokan 137.6, Semenyih 119.6).
+- `KIRAAN_FIZIKAL` — senarai kiraan stok fizikal (stock take). Pada tarikh kiraan, baki sistem ditetapkan kepada baki fizikal dan bezanya dipaparkan sebagai **Pelarasan (varians)**. Contoh:
+  ```js
+  KIRAAN_FIZIKAL: [
+    { tarikh: '2026-11-05', baki: { 'TKPM SENDAYAN': 85.5, 'BUKIT ROKAN': 40, 'SEMENYIH': 12, 'BINJAI': 0 }, catatan: 'Stock take bulanan' },
+  ],
+  ```
+- `SEGAR_LAMA_MINIT` — bulan lama (sebelum bulan lepas) dibaca semula setiap 15 minit.
 - `SEGAR_SAAT` — kekerapan muat semula (lalai 60 saat).
 
 Untuk mengubah: di GitHub, buka `config.js` › ikon pensel › ubah nilai › **Commit changes**.
