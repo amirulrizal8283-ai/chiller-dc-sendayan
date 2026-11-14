@@ -43,8 +43,10 @@ window.KONFIG = {
   /* Fail sumber — fail yang sama diisi oleh staf melalui portal Data Center DC Sendayan.
      Fail mesti dikongsi "Anyone with the link — Viewer". */
   FAIL: {
-    REJECT:    { id: '1xkjHKNN_RKkQneYgYqsJGlppU_gWLCEckcDyaBGKdiY', nama: 'QC Reject Detail Harvest',  format: 'BM' },
+    /* MASUK */
+    HARVEST:   { id: '1LT37I49uJdoNZ4x_z6nkPbHSAlIKQ4xMSqwVO0mIM8s', nama: 'Harvest Cendawan Harian',  format: 'PENDEK' },
     RECEIVING: { id: '1-k4ifNsH_thfq1yzYqbbK-pymiHLsJSq2JePl43RhTE', nama: 'QC Receiving Other Farm', format: 'Tajuk' },
+    /* KELUAR */
     STOCKOUT:  { id: '1peU8oh5xxYp0o8aj-0Puscw2am2mYAXRls_olpVwxjA', nama: 'QC Stock Out',            format: 'BM TAHUN' },
     ISSUE:     { id: '1oNwLPI_SNxt3hSPi05gxiNtu_49RL9Z0e9i999UALIo', nama: 'QC Stock Issue',          format: 'BM' }
   }

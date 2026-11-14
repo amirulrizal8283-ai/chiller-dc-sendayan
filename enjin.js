@@ -13,6 +13,8 @@
   const BULAN_BM = ['JANUARI', 'FEBRUARI', 'MAC', 'APRIL', 'MEI', 'JUN', 'JULAI', 'OGOS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DISEMBER'];
   const BULAN_EN = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
   const BULAN_PENDEK = ['JAN', 'FEB', 'MAC', 'APR', 'MEI', 'JUN', 'JUL', 'OGO', 'SEP', 'OKT', 'NOV', 'DIS'];
+  const NAMA_BULAN = { JAN: 1, FEB: 2, MAR: 3, MAC: 3, APR: 4, MAY: 5, MEI: 5, JUN: 6, JUL: 7, AUG: 8, OGO: 8,
+    SEP: 9, OCT: 10, OKT: 10, NOV: 11, DEC: 12, DIS: 12 };
   const tajukKes = s => s.charAt(0) + s.slice(1).toLowerCase();
 
   const JENIS = {
@@ -58,6 +60,11 @@
     let m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4}|\d{2})$/);
     let y, mo, d;
     if (m) { d = +m[1]; mo = +m[2]; y = +m[3]; if (y < 100) y += 2000; }
+    else if ((m = s.match(/^(\d{1,2})[\s\-\/.]+([A-Za-z]{3,9})[\s\-\/.,]+(\d{4}|\d{2})$/))) {
+      // "01-Nov-2026", "1 Okt 2026", "01-Ogo-26"
+      mo = NAMA_BULAN[m[2].toUpperCase().slice(0, 3)]; if (!mo) return null;
+      d = +m[1]; y = +m[3]; if (y < 100) y += 2000;
+    }
     else if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
     else return null;
     if (y < 2020 || y > 2100 || mo < 1 || mo > 12 || d < 1 || d > 31) return null;
@@ -82,6 +89,7 @@
     const asas = {
       'BM': [bm, tajukKes(bm), en, BULAN_PENDEK[b]],
       'Tajuk': [tajukKes(bm), bm, tajukKes(en), en],
+      'PENDEK': [BULAN_PENDEK[b], bm, BULAN_PENDEK[b] + ' ' + tahun, tajukKes(bm)],
       'BM TAHUN': [bm + ' ' + tahun, tajukKes(bm) + ' ' + tahun, en + ' ' + tahun, bm]
     }[format] || [bm];
     return asas.filter((v, i, a) => a.indexOf(v) === i);
@@ -121,6 +129,24 @@
       if (bersih === 0 && rej === 0) return;
       out.push({ t: tt.t, isu: tt.isu, asal: r[0], arah: 'MASUK', jenis: JENIS.HARVEST, lokasi: 'TKPM SENDAYAN', kg: bersih, reject: rej, kasar,
         ket: 'Shedhouse ' + shed, kunci: tt.t + '|' + shed, baris: i + 1 });
+    });
+    return out;
+  }
+
+  // 1b. HARVEST CENDAWAN HARIAN (MUSHROOM DATA HARVEST) — rekod harian mula baris 17:
+  //     A:Tarikh B:Hari C:Minggu D:Shedhouse E:Baglog In F:Baglog Out G:Gross(kg) H:Net(kg) I:Waste(kg)
+  //     NET = berat masuk chiller (selepas waste/reject QC).
+  function parseHarvest(rows, ym) {
+    const out = [];
+    rows.forEach((r, i) => {
+      const shed = String(r[3] || '').trim();
+      if (!shed || /SHEDHOUSE|JUMLAH/i.test(shed)) return;
+      const net = nombor(r[7]); if (isNaN(net)) return;
+      const gross = n0(r[6]), waste = n0(r[8]);
+      if (net === 0 && gross === 0) return;
+      const tt = tarikhTab(r[0], ym); if (!tt) return;
+      out.push({ t: tt.t, isu: tt.isu, asal: r[0], arah: 'MASUK', jenis: JENIS.HARVEST, lokasi: 'TKPM SENDAYAN', kg: net, reject: waste, kasar: gross,
+        ket: shed + ' · gross ' + bulat(gross) + ' kg' + (waste ? ', waste ' + bulat(waste) + ' kg' : ''), kunci: tt.t + '|' + shed, baris: i + 1 });
     });
     return out;
   }
@@ -209,7 +235,7 @@
     return out;
   }
 
-  const PARSER = { REJECT: parseReject, RECEIVING: parseReceiving, STOCKOUT: parseStockOut, ISSUE: parseIssue };
+  const PARSER = { HARVEST: parseHarvest, REJECT: parseReject, RECEIVING: parseReceiving, STOCKOUT: parseStockOut, ISSUE: parseIssue };
 
   /* ---------- Muat turun ---------- */
   function urlGviz(id, tab) {
@@ -376,7 +402,7 @@
     };
   }
 
-  const api = { csv, tarikh, tarikhTab, nombor, lokasi, calonTab, parseReject, parseReceiving, parseStockOut, parseIssue, muatSemua, kira, JENIS, LOKASI_TETAP, BULAN_BM };
+  const api = { csv, tarikh, tarikhTab, parseHarvest, nombor, lokasi, calonTab, parseReject, parseReceiving, parseStockOut, parseIssue, muatSemua, kira, JENIS, LOKASI_TETAP, BULAN_BM };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ENJIN = api;
 })(typeof window !== 'undefined' ? window : this);

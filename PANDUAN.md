@@ -6,7 +6,7 @@ Dashboard membaca terus 4 fail Google Sheet yang diisi oleh staf melalui portal 
 
 | Arah | Jenis | Fail | Nilai yang dikira |
 |---|---|---|---|
-| MASUK | Harvest Sendayan | QC Reject Detail Harvest | Berat bersih selepas reject (lajur C), lokasi TKPM Sendayan |
+| MASUK | Harvest Sendayan | Harvest Cendawan Harian (MUSHROOM DATA HARVEST DC SENDAYAN DASHBOARD 2026) | NET (KG) harian setiap shedhouse, lokasi TKPM Sendayan |
 | MASUK | Terima Farm Luar | QC Receiving Other Farm | Jumlah terima selepas reject (lajur K) |
 | KELUAR | Stok Keluar | QC Stock Out | 1KG + 200G (pek × 0.2) + 500G (pek × 0.5) |
 | KELUAR | RND / Sampel / Gift | QC Stock Issue | Berat (kg) |
