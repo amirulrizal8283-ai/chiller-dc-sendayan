@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Data Movement Chiller</title>
-<meta name="theme-color" content="#0B1A33">
+<meta name="theme-color" content="#051528">
 <meta name="description" content="Dashboard live pergerakan stok dan baki terkini chiller DXN DC Sendayan">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -12,39 +12,59 @@
 <meta name="apple-mobile-web-app-title" content="Chiller DC Sendayan">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
+<link rel="preload" as="image" href="logo.jpg">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0B1A33; --bg2:#0F2244; --panel:#132A50; --panel2:#18345F; --line:#24497D;
-  --ink:#EEF3FB; --ink2:#B5C5DE; --ink3:#7F95B8;
-  --teal:#2BC4B4; --teal-d:#0E7C7B; --ice:#D6E1F1; --coral:#F2766B; --amber:#E9B44C; --red:#FF5A5F;
-  --masuk:#2BC4B4; --keluar:#F2766B; --baki:#9CC3FF;
+  /* Tema CHILLER — biru glasier, panel kaca fros, aksen ais */
+  --bg:#051528; --bg2:#0A2340; --panel:#0E2C4D; --panel2:#123659; --line:rgba(170,220,255,.22);
+  --ink:#F2FAFF; --ink2:#C2DDF2; --ink3:#86A9C8;
+  --teal:#6FE6F5; --teal-d:#1D8FB8; --ice:#DDF3FF; --coral:#FF7E7E; --amber:#F2C462; --red:#FF5A6A;
+  --masuk:#64E8D6; --keluar:#FF8A84; --baki:#BFE7FF;
+  --frost:rgba(214,240,255,.10); --frost2:rgba(214,240,255,.04);
   --r:16px; --mono:'IBM Plex Mono',ui-monospace,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-body{min-height:100vh;background:radial-gradient(1200px 600px at 85% -10%,#1B3D73 0%,transparent 60%),radial-gradient(900px 500px at -10% 10%,#0F3A4A 0%,transparent 55%),var(--bg);background-attachment:fixed}
+body{min-height:100vh;background:
+  radial-gradient(1100px 620px at 85% -12%,rgba(111,230,245,.22) 0%,transparent 60%),
+  radial-gradient(900px 520px at -15% 8%,rgba(64,140,220,.28) 0%,transparent 58%),
+  radial-gradient(800px 600px at 50% 110%,rgba(160,215,255,.14) 0%,transparent 60%),
+  repeating-linear-gradient(115deg,rgba(255,255,255,.012) 0 2px,transparent 2px 9px),
+  linear-gradient(180deg,#071D36 0%,#051528 55%,#04111F 100%);background-attachment:fixed}
+/* Salji */
+#salji{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#salji i{position:absolute;top:-12px;border-radius:50%;background:#fff;opacity:.55;filter:blur(.4px);animation:jatuh linear infinite}
+@keyframes jatuh{to{transform:translate3d(var(--x,20px),105vh,0)}}
+@media (prefers-reduced-motion:reduce){#salji{display:none}}
+.wrap{position:relative;z-index:1}
 .wrap{max-width:1180px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 
 /* Header */
 header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.logo{width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.3)}
-.logo b{font:800 15px/1 'IBM Plex Sans';letter-spacing:.5px;background:linear-gradient(90deg,#D7262E 0 33%,#1B9E4B 33% 66%,#1F4FA3 66%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.ttl h1{font-size:18px;font-weight:700;letter-spacing:.2px}
+.logo{width:58px;height:58px;border-radius:16px;flex:none;overflow:hidden;background:#EAF6FD;
+  box-shadow:0 0 0 1px rgba(214,240,255,.6),0 0 22px rgba(111,230,245,.45),0 6px 18px rgba(0,0,0,.35)}
+.logo img{width:100%;height:100%;object-fit:cover;display:block}
+.ttl h1{font-size:18px;font-weight:700;letter-spacing:.2px;text-shadow:0 0 18px rgba(111,230,245,.35)}
 .ttl p{font-size:12px;color:var(--ink3);margin-top:2px}
-.live{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);background:rgba(255,255,255,.05);border:1px solid var(--line);padding:7px 11px;border-radius:999px;white-space:nowrap}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 0 rgba(43,196,180,.6);animation:pulse 2s infinite}
+.live{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);background:var(--frost);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);padding:7px 11px;border-radius:999px;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 0 rgba(111,230,245,.6);animation:pulse 2s infinite}
 .live.err .dot{background:var(--red);animation:none}
 .live.load .dot{background:var(--amber)}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(43,196,180,.55)}70%{box-shadow:0 0 0 9px rgba(43,196,180,0)}100%{box-shadow:0 0 0 0 rgba(43,196,180,0)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(111,230,245,.55)}70%{box-shadow:0 0 0 9px rgba(111,230,245,0)}100%{box-shadow:0 0 0 0 rgba(111,230,245,0)}}
 .btn{background:transparent;border:1px solid var(--line);color:var(--ink2);border-radius:10px;padding:7px 10px;font:500 12px 'IBM Plex Sans';cursor:pointer}
 .btn:hover{border-color:var(--teal);color:var(--ink)}
 
 /* Panels */
-.panel{background:linear-gradient(180deg,rgba(24,52,95,.92),rgba(19,42,80,.92));border:1px solid var(--line);border-radius:var(--r);padding:18px;animation:up .5s ease both}
+.panel{position:relative;background:linear-gradient(180deg,rgba(150,210,255,.13) 0%,rgba(90,160,225,.06) 40%,rgba(14,44,77,.55) 100%);
+  border:1px solid var(--line);border-radius:var(--r);padding:18px;animation:up .5s ease both;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 30px rgba(170,225,255,.05),0 12px 32px rgba(0,8,24,.45)}
+.panel:before{content:"";position:absolute;left:14px;right:14px;top:0;height:2px;border-radius:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(230,248,255,.85),transparent);opacity:.55}
 @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .h2{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .h2 .sp{flex:1}
@@ -54,16 +74,17 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 
 /* Hero */
 .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:center;position:relative;overflow:hidden}
-.hero:before{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(43,196,180,.18),transparent 70%)}
+.hero:after{content:"";position:absolute;right:-40px;top:-40px;width:240px;height:240px;background:url(logo.jpg) center/cover;border-radius:50%;
+  opacity:.07;filter:saturate(.4);pointer-events:none;-webkit-mask:radial-gradient(circle,#000 45%,transparent 70%);mask:radial-gradient(circle,#000 45%,transparent 70%)}
 @media(max-width:760px){.hero{grid-template-columns:1fr}}
 .hero .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:600}
-.hero .big{font-size:clamp(44px,9vw,72px);font-weight:600;line-height:1.02;margin:6px 0 4px}
+.hero .big{font-size:clamp(44px,9vw,72px);font-weight:600;line-height:1.02;margin:6px 0 4px;color:#F4FCFF;text-shadow:0 0 24px rgba(111,230,245,.45),0 0 2px rgba(255,255,255,.6)}
 .hero .big small{font-size:.32em;color:var(--ink2);margin-left:6px;font-weight:500}
 .hero .sub{font-size:13px;color:var(--ink2)}
 .hero.neg .big{color:var(--red);animation:blink 1.2s steps(2,start) infinite}
 @keyframes blink{50%{opacity:.35}}
 .formula{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;position:relative}
-.formula div{background:rgba(11,26,51,.55);border:1px solid var(--line);border-radius:12px;padding:10px 10px 9px}
+.formula div{background:var(--frost2);border:1px solid var(--line);border-radius:12px;padding:10px 10px 9px}
 .formula span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
 .formula b{display:block;font-size:17px;margin-top:4px}
 .formula .op{font-size:10.5px;color:var(--ink3)}
@@ -72,7 +93,7 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 
 /* Lokasi */
 .lok{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.lc{background:rgba(11,26,51,.5);border:1px solid var(--line);border-radius:14px;padding:14px;position:relative}
+.lc{background:var(--frost2);border:1px solid var(--line);border-radius:14px;padding:14px;position:relative}
 .lc h3{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink2)}
 .lc .v{font-size:26px;font-weight:600;margin:6px 0 8px}
 .lc .v small{font-size:12px;color:var(--ink3);margin-left:3px}
@@ -86,7 +107,7 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 
 /* KPI kecil */
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.kp{background:rgba(11,26,51,.5);border:1px solid var(--line);border-radius:12px;padding:12px}
+.kp{background:var(--frost2);border:1px solid var(--line);border-radius:12px;padding:12px}
 .kp span{font-size:11px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}
 .kp b{display:block;font-size:22px;margin-top:5px}
 .kp em{display:block;font-style:normal;font-size:11px;color:var(--ink3);margin-top:2px}
@@ -99,7 +120,7 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .stmt td:first-child{font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--ink2);font-weight:500}
 .stmt tbody tr{cursor:pointer}
 .stmt tbody tr:hover td{background:rgba(255,255,255,.03)}
-.stmt tr.kini td{background:rgba(43,196,180,.08)}
+.stmt tr.kini td{background:rgba(111,230,245,.08)}
 .stmt tr.kini td:first-child{color:var(--teal);font-weight:600}
 .stmt tr.pilih td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
 .stmt tfoot td{border-bottom:0;border-top:1px solid var(--line);font-weight:600;color:var(--ink)}
@@ -116,7 +137,7 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
   .ttl h1{font-size:16px}.live{padding:6px 9px;font-size:11px}
   .jr{grid-template-columns:112px 1fr 70px}
 }
-input[type=date],select,input[type=search]{background:rgba(11,26,51,.7);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:6px 9px;font:500 12px 'IBM Plex Sans';color-scheme:dark}
+input[type=date],select,input[type=search]{background:rgba(5,21,40,.6);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:6px 9px;font:500 12px 'IBM Plex Sans';color-scheme:dark}
 
 /* Pecahan jenis */
 .jn{display:grid;gap:9px}
@@ -145,7 +166,7 @@ input[type=date],select,input[type=search]{background:rgba(11,26,51,.7);border:1
 .it .m p{font-size:11.5px;color:var(--ink3);margin-top:2px}
 .it .k{font-size:15px;font-weight:600;text-align:right}
 .pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:5px;margin-right:6px;vertical-align:1px}
-.p-in{background:rgba(43,196,180,.14);color:var(--masuk)}
+.p-in{background:rgba(111,230,245,.14);color:var(--masuk)}
 .p-out{background:rgba(242,118,107,.14);color:var(--keluar)}
 .new{background:var(--amber);color:#1b1300}
 .it.flash{animation:fl 2.4s ease}
@@ -154,7 +175,7 @@ input[type=date],select,input[type=search]{background:rgba(11,26,51,.7);border:1
 
 /* Integriti */
 .src{display:grid;gap:8px;font-size:12.5px}
-.sr{display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 11px;background:rgba(11,26,51,.45);border:1px solid var(--line);border-radius:10px}
+.sr{display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 11px;background:var(--frost2);border:1px solid var(--line);border-radius:10px}
 .sr p{font-size:11px;color:var(--ink3);margin-top:2px}
 .ok{color:var(--teal);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
 .alert{border:1px solid rgba(233,180,76,.5);background:rgba(233,180,76,.08);border-radius:12px;padding:11px 13px;font-size:12.5px;color:var(--ink2);line-height:1.55}
@@ -166,9 +187,10 @@ footer{margin-top:22px;font-size:11.5px;color:var(--ink3);line-height:1.6;text-a
 </style>
 </head>
 <body>
+<div id="salji" aria-hidden="true"></div>
 <div class="wrap">
   <header>
-    <div class="logo"><b>DXN</b></div>
+    <div class="logo"><img src="logo.jpg" alt="DXN"></div>
     <div class="ttl"><h1>Data Movement Chiller</h1><p>DC Sendayan · Paparan sahaja</p></div>
     <div class="live load" id="live"><span class="dot"></span><span id="liveTx">Memuatkan…</span></div>
   </header>
@@ -177,7 +199,7 @@ footer{margin-top:22px;font-size:11.5px;color:var(--ink3);line-height:1.6;text-a
 
   <section class="panel hero" id="hero">
     <div>
-      <div class="lbl">Baki terkini dalam chiller</div>
+      <div class="lbl">❄ Baki terkini dalam chiller</div>
       <div class="big num" id="bakiBesar">—<small>kg</small></div>
       <div class="sub" id="bakiSub">Sedang membaca data portal…</div>
     </div>
@@ -482,7 +504,7 @@ function lukisSumber(){
   if(D.ganda.length) isu.push(`<b>${D.ganda.length} kemungkinan rekod berganda</b> (tarikh dan shedhouse/lokasi sama): `+D.ganda.slice(0,8).map(g=>esc(tTeks(g.t)+' '+g.ket)).join(', ')+(D.ganda.length>8?' …':'')+'. Kedua-dua rekod dikira; sahkan dan padam salah satu dalam fail asal jika berganda.');
   const tiada = hasilMuat.filter(h=>!h.tab && !h.ralat && h.ym < hariIni().slice(0,7));
   if(tiada.length) isu.push('<b>Tab bulan tidak dijumpai:</b> '+tiada.map(h=>esc(C.FAIL[h.kod].nama+' '+h.ym)).join(', ')+'. Baki bulan berikutnya mungkin tidak tepat.');
-  $('integ').innerHTML = isu.length ? isu.map(x=>`<div class="alert" style="margin-bottom:8px">${x}</div>`).join('') : '<div class="alert" style="border-color:rgba(43,196,180,.5);background:rgba(43,196,180,.08)"><b style="color:var(--teal)">Tiada isu dikesan.</b></div>';
+  $('integ').innerHTML = isu.length ? isu.map(x=>`<div class="alert" style="margin-bottom:8px">${x}</div>`).join('') : '<div class="alert" style="border-color:rgba(111,230,245,.5);background:rgba(111,230,245,.08)"><b style="color:var(--teal)">Tiada isu dikesan.</b></div>';
 }
 
 function eksportCSV(){
@@ -509,6 +531,12 @@ addEventListener('resize',()=>{ if(D) lukisCarta(); });
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) muat(); });
 setInterval(()=>{ if(!document.hidden) muat(); }, Math.max(20,C.SEGAR_SAAT)*1000);
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+// Salji ringan (tema chiller) — dimatikan jika pengguna memilih kurang animasi
+(function(){ const el=$('salji'); if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const n = innerWidth<600 ? 22 : 40; let h='';
+  for(let i=0;i<n;i++){ const sz=(Math.random()*3+1.5).toFixed(1), d=(Math.random()*10+9).toFixed(1), dl=(-Math.random()*20).toFixed(1);
+    h+=`<i style="left:${(Math.random()*100).toFixed(1)}%;width:${sz}px;height:${sz}px;animation-duration:${d}s;animation-delay:${dl}s;--x:${(Math.random()*60-30).toFixed(0)}px;opacity:${(Math.random()*.4+.25).toFixed(2)}"></i>`; }
+  el.innerHTML=h; })();
 muat();
 })();
 </script>

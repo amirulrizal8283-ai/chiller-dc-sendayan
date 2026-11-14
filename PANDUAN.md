@@ -20,7 +20,7 @@ Dashboard membaca terus 4 fail Google Sheet yang diisi oleh staf melalui portal 
 
 ## Pemasangan di GitHub Pages (±10 minit)
 1. Log masuk GitHub (akaun `amirulrizal8283-ai`), tekan **New repository**, namakan `chiller-dc-sendayan`, pilih **Public**, tekan **Create repository**.
-2. Tekan **uploading an existing file**, kemudian muat naik **kesemua 8 fail** (jika repo sudah wujud: tekan **Add file › Upload files**, muat naik semula `index.html`, `config.js`, `enjin.js`, `sw.js`, dan fail lama akan diganti): `index.html`, `config.js`, `enjin.js`, `sw.js`, `manifest.json`, `icon-192.png`, `icon-512.png`, `PANDUAN.md`. Tekan **Commit changes**.
+2. Tekan **uploading an existing file**, kemudian muat naik **kesemua 10 fail** (jika repo sudah wujud: tekan **Add file › Upload files**, muat naik semula `index.html`, `config.js`, `enjin.js`, `sw.js`, dan fail lama akan diganti): `index.html`, `config.js`, `enjin.js`, `sw.js`, `manifest.json`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `logo.jpg`, `PANDUAN.md`. Tekan **Commit changes**.
 3. Tekan **Settings › Pages**. Di *Source*, pilih **Deploy from a branch**, branch **main**, folder **/(root)**, tekan **Save**.
 4. Selepas 1–2 minit, pautan akan dipaparkan: `https://amirulrizal8283-ai.github.io/chiller-dc-sendayan/`
 
