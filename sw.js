@@ -1,5 +1,5 @@
 /* Service worker — simpan rangka aplikasi sahaja. Data Google Sheet sentiasa diambil terus (live). */
-const CACHE = 'chiller-dc-sendayan-v5';
+const CACHE = 'chiller-dc-sendayan-v6';
 const SHELL = ['./', 'index.html', 'config.js', 'enjin.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'logo.jpg'];
 
 self.addEventListener('install', e => {

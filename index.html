@@ -82,6 +82,10 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .hero .big small{font-size:.32em;color:var(--ink2);margin-left:6px;font-weight:500}
 .hero .sub{font-size:13px;color:var(--ink2)}
 .hero.neg .big{color:var(--red);animation:blink 1.2s steps(2,start) infinite}
+.hero.tak .big{color:var(--amber);text-shadow:none}
+.amaranSumber{display:none;margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,90,106,.6);background:rgba(255,90,106,.14);font-size:12.5px;line-height:1.5;color:#FFD9DC}
+.amaranSumber b{color:#fff}
+.hero.tak .amaranSumber{display:block;animation:blink 1.6s steps(2,start) 3}
 @keyframes blink{50%{opacity:.35}}
 .formula{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;position:relative}
 .formula div{background:var(--frost2);border:1px solid var(--line);border-radius:12px;padding:10px 10px 9px}
@@ -202,6 +206,7 @@ footer{margin-top:22px;font-size:11.5px;color:var(--ink3);line-height:1.6;text-a
       <div class="lbl">❄ Baki terkini dalam chiller</div>
       <div class="big num" id="bakiBesar">—<small>kg</small></div>
       <div class="sub" id="bakiSub">Sedang membaca data portal…</div>
+      <div class="amaranSumber" id="amaranSumber"></div>
     </div>
     <div class="formula">
       <div><span>Baki B/F</span><b class="num" id="fAwal">—</b><em class="op" id="fAwalT"></em></div>
@@ -338,7 +343,12 @@ async function muat(){
 function lukis(){
   const J = D.jumlah;
   // Hero
-  $('hero').classList.toggle('neg', J.baki < 0);
+  // Amaran jika mana-mana fail sumber gagal dibaca — baki TIDAK boleh dipercayai
+  const gagalKod = [...new Set(hasilMuat.filter(h=>h.ralat||h.amaran).map(h=>h.kod))];
+  $('hero').classList.toggle('tak', gagalKod.length>0);
+  $('hero').classList.toggle('neg', J.baki < 0 && !gagalKod.length);
+  $('amaranSumber').innerHTML = gagalKod.length ? '⚠ <b>BAKI TIDAK TEPAT.</b> Fail '+gagalKod.map(k=>'<b>'+esc(C.FAIL[k].nama)+'</b>').join(', ')+
+    ' tidak dapat dibaca (kemungkinan perkongsian ditutup). Pastikan fail dikongsi <b>"Anyone with the link – Viewer"</b>.' : '';
   $('bakiBesar').innerHTML = fmt(J.baki)+'<small>kg</small>';
   const akhir = D.rekod.length ? D.rekod[D.rekod.length-1].t : null;
   $('bakiSub').textContent = 'Baki pembukaan '+tTeks(C.TARIKH_MULA)+': '+fmt(J.awal)+' kg'+(C.SUMBER_BAKI_AWAL?' ('+C.SUMBER_BAKI_AWAL+')':'')+
